@@ -1,0 +1,35 @@
+[project]
+name = "budgeted-vickrey"
+version = "0.1.0"
+description = "Budgeted repeated second-price auction: stage-game, DP, simulation, analytics."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "nashpy==0.0.35",
+    "numpy==1.26.*",
+    "scipy==1.13.*",
+    "pandas==2.2.*",
+    "matplotlib==3.9.*",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7,<9", "pytest-cov>=4,<6", "ruff>=0.5,<0.7"]
+
+[project.scripts]
+spa-stage = "budgeted_spa.stage_game:main"
+spa-dynamics = "budgeted_spa.dynamics:main"
+spa-sim = "budgeted_spa.simulate:main"
+spa-analysis = "budgeted_spa.analysis:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.uv]
+managed = true

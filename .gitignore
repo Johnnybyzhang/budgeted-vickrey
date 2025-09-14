@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.pytest_cache/
+
+# Environments
+.venv/
+.env/
+
+# OS
+.DS_Store
+
+# Project artifacts
+sim.prof
+results/*.parquet
+results/*.prof
+notebooks/.ipynb_checkpoints/
+
+# Allow CSV/PNGs for reproducibility but keep directory structure
