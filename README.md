@@ -1,4 +1,4 @@
-## Budgeted Repeated Second-Price Auction
+# Budgeted Repeated Second-Price Auction
 ---
 ## Note to class peer reviewers: Please create a issue and tag the respective file when commenting, thanks!
 ---
