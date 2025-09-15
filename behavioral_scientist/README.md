@@ -4,10 +4,7 @@ Goal
 - Document the human-subjects interface and session configuration; package the oTree app and provide screenshots and LLM prompt artifacts.
 
 Screenshots
-- Put gameplay and session result screenshots under behavioral_scientist/screenshots/ with captions:
-  - lobby.png — “Lobby: round count T=10, players=2”
-  - round_screen.png — “Round UI: value display and bid input with budget cap”
-  - results.png — “Session results: price path and revenue”
+- Under [Screenshots](./screenshots)
 
 LLM Prompts
 - prompts and transcripts under behavioral_scientist/llm/:
