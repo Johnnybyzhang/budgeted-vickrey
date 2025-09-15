@@ -1,0 +1,6 @@
+{
+  "model": "",
+  "temperature": 0.7,
+  "top_p": 1.0,
+  "notes": "Record the exact model/provider and parameters used."
+}

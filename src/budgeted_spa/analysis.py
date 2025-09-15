@@ -7,7 +7,7 @@ import pandas as pd
 from pathlib import Path
 
 from .io_utils import read_table, to_table
-from .plots import plot_price_path
+from .plots import plot_price_path, plot_stage_heatmap
 from .otree_ingest import load_otree_csv, summarize_otree
 
 
@@ -36,6 +36,7 @@ def main(argv: List[str] | None = None) -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--in", dest="inp", type=str, required=True)
     p.add_argument("--otree", type=str, default=None)
+    p.add_argument("--stage-grid", type=str, default=None, help="stage_game grid CSV to plot heatmaps")
     p.add_argument("--out", type=str, default="results/summary.csv")
     args = p.parse_args(argv)
 
@@ -54,6 +55,12 @@ def main(argv: List[str] | None = None) -> None:
         ots = summarize_otree(ot)
         if not ots.empty:
             to_table(ots, "results/otree_summary.csv")
+
+    if args.stage_grid and Path(args.stage_grid).exists():
+        sg = read_table(args.stage_grid)
+        plot_stage_heatmap(sg, measure="eq_count", outdir="figures")
+        if "truth_capped_br" in sg.columns:
+            plot_stage_heatmap(sg, measure="truth_capped_br", outdir="figures")
 
 
 if __name__ == "__main__":
