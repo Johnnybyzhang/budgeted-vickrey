@@ -3,13 +3,6 @@ Behavioral Scientist Track — oTree + LLM Artifacts
 Goal
 - Document the human-subjects interface and session configuration; package the oTree app and provide screenshots and LLM prompt artifacts.
 
-Do Not Compute on Device
-- This folder contains documentation and assets only. No heavy computation here.
-
-oTree App
-- Place your zipped oTree app at behavioral_scientist/otree_app.zip (not included here).
-- Include a short CHANGELOG inside the zip with app version and session config.
-
 Screenshots
 - Put gameplay and session result screenshots under behavioral_scientist/screenshots/ with captions:
   - lobby.png — “Lobby: round count T=10, players=2”
@@ -17,14 +10,14 @@ Screenshots
   - results.png — “Session results: price path and revenue”
 
 LLM Prompts
-- Store your prompts and transcripts under behavioral_scientist/llm/:
+- prompts and transcripts under behavioral_scientist/llm/:
   - prompts.txt — the exact prompts used
-  - transcript.md — discussion trace with timestamps (if any)
+  - transcript.md — discussion trace with timestamps
   - settings.json — model/version/temperature and other parameters
 
 Deployment Steps
 - Create a new oTree project, add app, and configure session defaults matching T, B0, r, value range.
-- Test locally with otree devserver; deploy to oTree Hub or a VM as per lab policy.
+- Test locally with otree devserver; deploy to oTree Hub or a VM (Used).
 
 Session Configuration
 - Players: 2 (extendable)
@@ -38,3 +31,4 @@ Ethics Note
 - Avoid deception; disclose that bids are capped by remaining budget.
 - Anonymize any stored identifiers and follow IRB guidance.
 
+Generated data following the observed behaviour of class assignment at [CSV File](./all_apps_wide-2025-09-11.csv)
