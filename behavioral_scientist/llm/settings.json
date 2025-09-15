@@ -1,14 +1,13 @@
 {
   "default_analysis": {
-    "model": "gpt-4o-mini",
+    "model": "gpt-5",
     "temperature": 0.2,
     "top_p": 1.0,
     "seed": 42
   },
   "default_copywriting": {
-    "model": "gpt-4o-mini",
+    "model": "gpt-5-mini",
     "temperature": 0.7,
     "top_p": 0.95
-  },
-  "notes": "Adjust to your available model/provider. Keep analysis temperature low to avoid hallucinations."
+  }
 }
