@@ -1,5 +1,7 @@
 ## Budgeted Repeated Second-Price Auction
-
+---
+## Note to class peer reviewers: Please create a issue and tag the respective file when commenting, thanks!
+---
 ### Abstract
 We study a repeated second-price auction with per-round budget constraints and refills. We provide a one-shot (stage game) baseline using NashPy on discretized bids, a fast dynamic heuristic policy (threshold) for finite horizons, and a Monte-Carlo simulator to quantify revenue, efficiency, and price dynamics under budget pressure. A small empirical cross-check loader is included for oTree exports.
 
