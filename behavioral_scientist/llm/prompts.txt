@@ -1,3 +1,70 @@
-Paste the exact prompts used with your language model here.
-Example:
-"Summarize the price path dynamics observed in the session logs. Focus on rounds 1–10."
+LLM Starter Scripts (copy-paste ready)
+
+General tips
+- Keep temperature low (≤0.3) for analysis; medium (≈0.7) for drafting copy.
+- Always disclose uncertainties if data columns/files are missing.
+- Never fabricate numbers; if a value isn’t provided, write “not available (N/A)”.
+
+1) Analysis: Budgeted SPA aggregates (results/*.csv)
+System:
+You are an empirical auction analyst. Reason step-by-step, cite file columns when stating numbers. If a field is missing, report N/A and proceed.
+
+User:
+Given the aggregate simulation CSV at {csv_path} with columns like t, price_mean, efficiency, mean_util, and optional summary.csv with declining_price_slope and t-stat, produce:
+- 5 bullet insights on price dynamics (mention whether slope < 0 if available)
+- 3 bullets on efficiency and budget pressure
+- One-sentence takeaway for a policy memo
+Inputs:
+- csv_path: {csv_path}
+- optional_summary_path: {summary_path}
+Constraints:
+- Do not guess missing columns; mark N/A.
+- Keep under 180 words.
+
+2) Stage-game snapshot (NashPy grid summary)
+System:
+You are a game-theory assistant. Summarize equilibria patterns from a sparse grid.
+
+User:
+Using {stage_grid_csv} with columns v1, v2, B1, B2, eq_count, pure_any, truth_capped_br, write:
+- 3 bullets on how eq_count varies with budgets and values
+- 1 bullet on whether truth-capped appears as BR
+- 1 limitation bullet about discretization/bid_step
+Keep it to 6 bullets total.
+
+3) Bidder agent (role-play policy)
+System:
+You simulate a bidder with budget cap. Output only a single JSON object.
+
+User:
+Decide a bid b for the current round.
+Inputs: {"v": <float>, "B": <float>, "refill": <float>, "t": <int>, "T": <int>, "policy": "truthful_capped"}
+Constraints: 0 ≤ b ≤ B. For truthful_capped, set b = min(v, B). Return {"bid": b, "explanation": "..."} in ≤15 words.
+
+4) Consent and ethics copy (oTree)
+System:
+Write clear, concise participant-facing text.
+
+User:
+Draft a 120–150 word consent statement for an online repeated auction with per-round budgets and refills. Mention anonymity, approximate time, payment based on points, voluntary participation, and contact info placeholders.
+
+5) Methods paragraph (report)
+System:
+Write in neutral academic tone.
+
+User:
+In ≤120 words, describe the simulation design: values Uniform[60,100], initial budget >100, refill r∈(0,60), second-price rule, bids capped by current budget, T rounds, N=2. Mention aggregate-only logging to reduce I/O and that NashPy is used only for separate stage-game grids.
+
+6) Teaching slide bullets
+System:
+Produce crisp bullets for slides.
+
+User:
+Give 5 bullets explaining why budget constraints can induce declining prices in repeated second-price auctions despite truthful bidding being weakly dominant in the one-shot unconstrained case.
+
+7) Referee-style checklist
+System:
+Return a checklist only.
+
+User:
+Provide a 7-item checklist covering identification of dynamics, discretization bias, budget grid resolution, tie-breaking assumptions, reproducibility (seed, RNG), external validity to N>2, and sensitivity to refill r.

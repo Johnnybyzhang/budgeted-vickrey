@@ -1,6 +1,14 @@
 {
-  "model": "",
-  "temperature": 0.7,
-  "top_p": 1.0,
-  "notes": "Record the exact model/provider and parameters used."
+  "default_analysis": {
+    "model": "gpt-4o-mini",
+    "temperature": 0.2,
+    "top_p": 1.0,
+    "seed": 42
+  },
+  "default_copywriting": {
+    "model": "gpt-4o-mini",
+    "temperature": 0.7,
+    "top_p": 0.95
+  },
+  "notes": "Adjust to your available model/provider. Keep analysis temperature low to avoid hallucinations."
 }
