@@ -8,6 +8,7 @@ We study a repeated second-price auction with per-round budget constraints and r
 ## Task Summary
 - Implement stage-game equilibria for the budgeted second-price auction (2-player, discretized bids) using NashPy.
 - Provide a fast repeated-auction simulator with truthful-capped and threshold policies.
+- Allow discrete valuations for simulation via a finite grid (`--value-mode discrete`).
 - Generate analytics/plots and a LaTeX scaffold. Split documentation across economist, computational scientist, and behavioral scientist tracks.
 
 ## Reproduction Steps (Python ≥ 3.10, macOS/Linux)
@@ -23,7 +24,23 @@ We study a repeated second-price auction with per-round budget constraints and r
     --bid-step 5 --value-step 10 --budget-step 10 \
     --out-episodes none --out-aggregates results/fast.csv
   ```
-- Plot summary: `uv run python -m budgeted_spa.analysis --in results/fast.csv`
+  
+  Discrete valuations example (equal probability on {60,70,80,90,100}):
+  ```
+  OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
+  uv run python -m budgeted_spa.simulate \
+    --fast --skip-nash --skip-dp \
+    --policy truthful_capped \
+    --value-mode discrete --value-points 60,70,80,90,100 \
+    --n-mc 500 --T 5 --n-players 2 \
+    --bid-step 5 --value-step 10 --budget-step 10 \
+    --out-episodes none --out-aggregates results/fast_discrete.csv
+  ```
+  
+  Plot summary:
+  ```
+  uv run python -m budgeted_spa.analysis --in results/fast.csv
+  ```
 
 ## Optional Components
 - Stage-game grid (NashPy, small): `uv run python -m budgeted_spa.stage_game --grid --tiny --skip-nash --out results/stage_grid_tiny.csv`

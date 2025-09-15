@@ -129,6 +129,11 @@ def main(argv: List[str] | None = None) -> None:
             continue
         if v is not None:
             setattr(prm, k.replace("-", "_"), v)
+    # Normalize potential comma-separated string for value_points
+    if isinstance(prm.value_points, str):  # type: ignore[attr-defined]
+        s: str = prm.value_points  # type: ignore[assignment]
+        pts = [float(x) for x in s.split(",")] if s else []
+        prm.value_points = pts  # type: ignore[assignment]
     if args.tiny:
         prm = apply_tiny(prm)
     prm.validate()

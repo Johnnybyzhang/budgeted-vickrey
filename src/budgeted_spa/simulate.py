@@ -24,7 +24,22 @@ from .io_utils import to_table, load_pickle
 
 
 def draw_values(prm: Params, rng: np.random.Generator, size: tuple[int, ...]) -> np.ndarray:
-    return rng.uniform(prm.value_low, prm.value_high, size=size)
+    """Draw private values according to `Params.value_mode`.
+
+    - continuous: Uniform[value_low, value_high]
+    - discrete: sample with equal probability from either `value_points` (if provided)
+      or the grid arange(value_low, value_high + eps, value_step).
+    """
+    if prm.value_mode == "continuous":
+        return rng.uniform(prm.value_low, prm.value_high, size=size)
+    # discrete
+    if prm.value_points:
+        support = np.asarray(prm.value_points, dtype=float)
+    else:
+        support = np.arange(prm.value_low, prm.value_high + 1e-9, prm.value_step, dtype=float)
+    # sample i.i.d. from support
+    flat = rng.choice(support, size=int(np.prod(size)), replace=True)
+    return flat.reshape(size)
 
 
 def second_price_outcome(bids: np.ndarray, rng: np.random.Generator) -> tuple[int, float]:
@@ -81,6 +96,10 @@ def simulate(prm: Params, policy: str = "truth", policy_pkl: str | None = None, 
     agg_rows: List[dict] = []
     ep_rows: List[dict] = []
     cap = (np.inf if prm.budget_cap is None else prm.budget_cap)
+    meta = prm.asdict()
+    # stringify list-like for CSV friendliness
+    if isinstance(meta.get("value_points"), list):
+        meta["value_points"] = ",".join(str(x) for x in meta["value_points"])  # type: ignore[index]
     for t in range(1, T + 1):
         vals = draw_values(prm, rng, size=(n_mc, N))
         bids = np.zeros_like(vals)
@@ -109,13 +128,18 @@ def simulate(prm: Params, policy: str = "truth", policy_pkl: str | None = None, 
             truth_cap = np.minimum(vals, budgets)
             truth_dev = np.abs(bids - truth_cap).mean(axis=1)
             # Aggregates
-            agg_rows.append(dict(t=t, price_mean=float(price.mean()), efficiency=float(eff.mean()), mean_util=float((util0 + util1).mean()), mean_truth_dev=float(truth_dev.mean())))
+            row = dict(t=t, price_mean=float(price.mean()), efficiency=float(eff.mean()), mean_util=float((util0 + util1).mean()), mean_truth_dev=float(truth_dev.mean()))
+            row.update(meta)
+            agg_rows.append(row)
             # Update budgets
             budgets[:, 0] = np.minimum(budgets[:, 0] - np.where(w == 0, price, 0.0) + prm.refill, cap)
             budgets[:, 1] = np.minimum(budgets[:, 1] - np.where(w == 1, price, 0.0) + prm.refill, cap)
             if out_episodes:
                 for i in range(n_mc):
                     ep_rows.append(dict(t=t, winner=int(w[i]), price=float(price[i]), efficiency=int(eff[i]), mean_util=float((util0[i] + util1[i])), mean_truth_dev=float(truth_dev[i])))
+                    # Per-player budgets for trajectory plots (after update)
+                    ep_rows.append(dict(t=t, player=0, budget=float(budgets[i, 0])))
+                    ep_rows.append(dict(t=t, player=1, budget=float(budgets[i, 1])))
         else:
             # Fallback generic path (loop on episodes)
             winners = np.zeros(n_mc, dtype=int)
@@ -131,7 +155,9 @@ def simulate(prm: Params, policy: str = "truth", policy_pkl: str | None = None, 
                 util[i, winners[i]] = vals[i, winners[i]] - price[i]
             truth_cap = np.minimum(vals, budgets)
             truth_dev = np.abs(bids - truth_cap).mean(axis=1)
-            agg_rows.append(dict(t=t, price_mean=float(price.mean()), efficiency=float(eff.mean()), mean_util=float(util.sum(axis=1).mean()), mean_truth_dev=float(truth_dev.mean())))
+            row = dict(t=t, price_mean=float(price.mean()), efficiency=float(eff.mean()), mean_util=float(util.sum(axis=1).mean()), mean_truth_dev=float(truth_dev.mean()))
+            row.update(meta)
+            agg_rows.append(row)
             # Update budgets
             for i in range(n_mc):
                 budgets[i, winners[i]] = min(budgets[i, winners[i]] - price[i] + prm.refill, cap)
@@ -141,6 +167,8 @@ def simulate(prm: Params, policy: str = "truth", policy_pkl: str | None = None, 
             if out_episodes:
                 for i in range(n_mc):
                     ep_rows.append(dict(t=t, winner=int(winners[i]), price=float(price[i]), efficiency=int(eff[i]), mean_util=float(util[i].sum()), mean_truth_dev=float(truth_dev[i])))
+                    for j in range(N):
+                        ep_rows.append(dict(t=t, player=int(j), budget=float(budgets[i, j])))
 
     return pd.DataFrame(ep_rows) if out_episodes else pd.DataFrame(agg_rows)
 
@@ -163,6 +191,11 @@ def main(argv: List[str] | None = None) -> None:
             continue
         if v is not None:
             setattr(prm, k.replace("-", "_"), v)
+    # Normalize potential comma-separated string for value_points
+    if isinstance(prm.value_points, str):  # type: ignore[attr-defined]
+        s: str = prm.value_points  # type: ignore[assignment]
+        pts = [float(x) for x in s.split(",")] if s else []
+        prm.value_points = pts  # type: ignore[assignment]
     if args.tiny:
         prm = apply_tiny(prm)
     prm.validate()

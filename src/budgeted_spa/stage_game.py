@@ -109,7 +109,10 @@ def run_grid(prm: Params, out: str, tiny: bool = False, skip_nash: bool = False)
         values = np.array([prm.value_low, (prm.value_low + prm.value_high) / 2, prm.value_high])
         budgets = np.array([60.0, prm.B0], dtype=float)
     else:
-        values = np.arange(prm.value_low, prm.value_high + 1e-9, prm.value_step)
+        if prm.value_mode == "discrete" and prm.value_points:
+            values = np.array(sorted(set(float(x) for x in prm.value_points)))
+        else:
+            values = np.arange(prm.value_low, prm.value_high + 1e-9, prm.value_step)
         budgets = np.array([60.0, 80.0, 100.0, prm.B0], dtype=float)
     rows = []
     for v1 in values:
@@ -149,6 +152,11 @@ def main(argv: List[str] | None = None) -> None:
             continue
         if v is not None:
             setattr(prm, k.replace("-", "_"), v)
+    # Normalize potential comma-separated string for value_points
+    if isinstance(prm.value_points, str):  # type: ignore[attr-defined]
+        s: str = prm.value_points  # type: ignore[assignment]
+        pts = [float(x) for x in s.split(",")] if s else []
+        prm.value_points = pts  # type: ignore[assignment]
     if args.tiny:
         prm = apply_tiny(prm)
     prm.validate()

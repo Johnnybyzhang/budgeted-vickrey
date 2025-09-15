@@ -7,7 +7,7 @@ import pandas as pd
 from pathlib import Path
 
 from .io_utils import read_table, to_table
-from .plots import plot_price_path, plot_stage_heatmap
+from .plots import plot_price_path, plot_stage_heatmap, plot_revenue_path
 from .otree_ingest import load_otree_csv, summarize_otree
 
 
@@ -36,6 +36,7 @@ def main(argv: List[str] | None = None) -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--in", dest="inp", type=str, required=True)
     p.add_argument("--otree", type=str, default=None)
+    p.add_argument("--episodes", type=str, default=None, help="episode-level CSV to plot budget trajectories")
     p.add_argument("--stage-grid", type=str, default=None, help="stage_game grid CSV to plot heatmaps")
     p.add_argument("--out", type=str, default="results/summary.csv")
     args = p.parse_args(argv)
@@ -43,6 +44,7 @@ def main(argv: List[str] | None = None) -> None:
     df = read_table(args.inp)
     slope, tstat = declining_price_slope(df)
     fig_path = plot_price_path(df, outdir="figures")
+    rev_path = plot_revenue_path(df, outdir="figures")
     out_df = pd.DataFrame([
         dict(metric="declining_price_slope", value=slope),
         dict(metric="declining_price_tstat", value=tstat),
@@ -56,11 +58,34 @@ def main(argv: List[str] | None = None) -> None:
         if not ots.empty:
             to_table(ots, "results/otree_summary.csv")
 
+    # Stage heatmaps and equilibrium alias for report
     if args.stage_grid and Path(args.stage_grid).exists():
         sg = read_table(args.stage_grid)
-        plot_stage_heatmap(sg, measure="eq_count", outdir="figures")
+        hm = plot_stage_heatmap(sg, measure="eq_count", outdir="figures")
         if "truth_capped_br" in sg.columns:
             plot_stage_heatmap(sg, measure="truth_capped_br", outdir="figures")
+        # Copy/alias to equilibrium_heatmap.png expected by report.tex
+        try:
+            import shutil
+            dest = Path("figures/equilibrium_heatmap.png")
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(hm, dest)
+        except Exception:
+            pass
+    else:
+        # Create a placeholder equilibrium_heatmap.png to satisfy LaTeX
+        from matplotlib import pyplot as plt
+        p = Path("figures")
+        p.mkdir(parents=True, exist_ok=True)
+        fig, ax = plt.subplots(figsize=(5, 4))
+        ax.text(0.5, 0.5, "No stage grid provided", ha="center", va="center")
+        fig.savefig(p / "equilibrium_heatmap.png")
+        plt.close(fig)
+
+    # Optional budget trajectories from episodes CSV
+    if args.episodes and Path(args.episodes).exists():
+        ep = read_table(args.episodes)
+        plot_budget_trajectories(ep, outdir="figures")
 
 
 if __name__ == "__main__":

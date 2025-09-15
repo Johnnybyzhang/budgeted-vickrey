@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
-from typing import Optional
+from dataclasses import dataclass, asdict, field
+from typing import Optional, List
 import argparse
 
 
@@ -21,6 +21,11 @@ class Params:
     budget_cap: Optional[float] = None
     n_mc: int = 10_000
     seed: int = 42
+    # Value distribution mode for simulation: "continuous" uses Uniform[value_low, value_high),
+    # "discrete" samples from a finite grid.
+    value_mode: str = "continuous"  # one of {"continuous", "discrete"}
+    # Optional explicit support for discrete values; if empty, uses arange(value_low, value_high, value_step)
+    value_points: List[float] = field(default_factory=list)
 
     def validate(self) -> None:
         assert self.n_players >= 2
@@ -29,6 +34,13 @@ class Params:
         assert self.bid_step > 0 and self.value_step > 0 and self.budget_step > 0
         if self.budget_cap is not None:
             assert self.budget_cap >= self.B0
+        assert self.value_mode in {"continuous", "discrete"}
+        if self.value_mode == "discrete":
+            if self.value_points:
+                # ensure points lie within [low, high]
+                lo, hi = self.value_low, self.value_high
+                for x in self.value_points:
+                    assert lo - 1e-9 <= x <= hi + 1e-9, "value_points must lie within [value_low, value_high]"
 
     def asdict(self) -> dict:
         return asdict(self)
@@ -46,6 +58,8 @@ def add_common_args(p: argparse.ArgumentParser) -> None:
     g.add_argument("--bid-step", type=float)
     g.add_argument("--budget-step", type=float)
     g.add_argument("--value-step", type=float)
+    g.add_argument("--value-mode", type=str, choices=["continuous", "discrete"], help="draw values from continuous uniform or a discrete grid")
+    g.add_argument("--value-points", type=str, help="comma-separated list for discrete value support; defaults to arange(value_low,value_high,value_step)")
     g.add_argument("--seed", type=int)
     g.add_argument("--n-mc", type=int)
     g.add_argument("--tiny", action="store_true", help="use very small, fast defaults")
@@ -72,7 +86,13 @@ def parse_params_from_cli(argv: Optional[list[str]] = None) -> Params:
     args = p.parse_args(argv)
     prm = Params()
     for k, v in vars(args).items():
-        if v is not None:
+        if v is None:
+            continue
+        if k == "value_points":
+            # parse comma-separated floats
+            pts = [float(x) for x in v.split(",")] if isinstance(v, str) else []
+            setattr(prm, "value_points", pts)
+        else:
             setattr(prm, k.replace("-", "_"), v)
     prm.validate()
     return prm
