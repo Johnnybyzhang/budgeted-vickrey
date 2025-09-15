@@ -1,4 +1,4 @@
-LLM Starter Scripts (copy-paste ready)
+LLM Starter Scripts
 
 General tips
 - Keep temperature low (≤0.3) for analysis; medium (≈0.7) for drafting copy.
