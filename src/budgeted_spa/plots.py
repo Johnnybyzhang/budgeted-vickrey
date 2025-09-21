@@ -112,6 +112,95 @@ def plot_revenue_path(df: pd.DataFrame, outdir: str | Path = "figures", dpi: int
     return path
 
 
+def _maybe_extract_series(df: pd.DataFrame, column: str, rename: str) -> pd.Series | None:
+    if column in df.columns:
+        return df.groupby("t")[column].mean()
+    if rename in df.columns:
+        tmp = df[["t", rename]].rename(columns={rename: column})
+        return tmp.groupby("t")[column].mean()
+    return None
+
+
+def plot_efficiency_and_util(
+    df: pd.DataFrame,
+    outdir: str | Path = "figures",
+    dpi: int = 200,
+) -> Path:
+    """Plot efficiency and mean utility by round from aggregate simulation data."""
+
+    required = {"t", "efficiency", "mean_util"}
+    p = _ensure_figures_dir(outdir)
+    if not required.issubset(df.columns):
+        fig, ax = plt.subplots(figsize=(6, 4), dpi=dpi)
+        ax.text(0.5, 0.5, "No efficiency/util data", ha="center", va="center")
+        path = p / "efficiency_and_util.png"
+        fig.savefig(path)
+        plt.close(fig)
+        return path
+
+    g = df.sort_values("t")
+    fig, (ax_eff, ax_util) = plt.subplots(2, 1, figsize=(6, 6), sharex=True, dpi=dpi)
+    ax_eff.plot(g["t"], g["efficiency"], marker="o", label="allocative efficiency")
+    ax_eff.set_ylabel("Efficiency")
+    ax_eff.set_ylim(0, 1.05)
+    ax_eff.grid(alpha=0.3)
+    ax_eff.legend(loc="lower left")
+
+    ax_util.plot(g["t"], g["mean_util"], marker="o", color="C2", label="mean utility")
+    ax_util.set_xlabel("Round")
+    ax_util.set_ylabel("Mean utility")
+    ax_util.grid(alpha=0.3)
+    ax_util.legend(loc="lower left")
+
+    fig.suptitle("Efficiency and Payoff Dynamics")
+    fig.tight_layout()
+    path = p / "efficiency_and_util.png"
+    fig.savefig(path)
+    plt.close(fig)
+    return path
+
+
+def plot_price_comparison(
+    baseline: pd.DataFrame,
+    comparison: pd.DataFrame,
+    baseline_label: str = "Baseline",
+    comparison_label: str = "Comparison",
+    outdir: str | Path = "figures",
+    dpi: int = 200,
+) -> Path:
+    """Overlay price paths from two aggregate datasets for side-by-side comparison."""
+
+    p = _ensure_figures_dir(outdir)
+    base_series = _maybe_extract_series(baseline, "price", "price_mean")
+    comp_series = _maybe_extract_series(comparison, "price", "price_mean")
+    if base_series is None or comp_series is None:
+        fig, ax = plt.subplots(figsize=(6, 4), dpi=dpi)
+        ax.text(0.5, 0.5, "Price data unavailable", ha="center", va="center")
+        path = p / "price_path_comparison.png"
+        fig.savefig(path)
+        plt.close(fig)
+        return path
+
+    # Align on common rounds to avoid plotting mismatched horizons
+    joined = (
+        pd.DataFrame({"baseline": base_series, "comparison": comp_series})
+        .dropna()
+        .sort_index()
+    )
+    fig, ax = plt.subplots(figsize=(6, 4), dpi=dpi)
+    ax.plot(joined.index, joined["baseline"], marker="o", label=baseline_label)
+    ax.plot(joined.index, joined["comparison"], marker="s", label=comparison_label)
+    ax.set_xlabel("Round")
+    ax.set_ylabel("Price")
+    ax.set_title("Price Paths Across Value Distributions")
+    ax.legend()
+    ax.grid(alpha=0.3)
+    path = p / "price_path_comparison.png"
+    fig.tight_layout()
+    fig.savefig(path)
+    plt.close(fig)
+    return path
+
 def plot_stage_heatmap(df: pd.DataFrame, measure: str = "eq_count", outdir: str | Path = "figures", dpi: int = 200) -> Path:
     """Heatmap over diagonal cases v1=v2 and B1=B2.
 

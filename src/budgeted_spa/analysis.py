@@ -7,7 +7,14 @@ import pandas as pd
 from pathlib import Path
 
 from .io_utils import read_table, to_table
-from .plots import plot_price_path, plot_stage_heatmap, plot_revenue_path
+from .plots import (
+    plot_budget_trajectories,
+    plot_efficiency_and_util,
+    plot_price_comparison,
+    plot_price_path,
+    plot_revenue_path,
+    plot_stage_heatmap,
+)
 from .otree_ingest import load_otree_csv, summarize_otree
 
 
@@ -38,6 +45,9 @@ def main(argv: List[str] | None = None) -> None:
     p.add_argument("--otree", type=str, default=None)
     p.add_argument("--episodes", type=str, default=None, help="episode-level CSV to plot budget trajectories")
     p.add_argument("--stage-grid", type=str, default=None, help="stage_game grid CSV to plot heatmaps")
+    p.add_argument("--compare", type=str, default=None, help="optional second aggregate CSV for price comparison")
+    p.add_argument("--baseline-label", type=str, default="Continuous values", help="label for the primary dataset")
+    p.add_argument("--compare-label", type=str, default="Discrete values", help="label for the comparison dataset")
     p.add_argument("--out", type=str, default="results/summary.csv")
     args = p.parse_args(argv)
 
@@ -45,6 +55,7 @@ def main(argv: List[str] | None = None) -> None:
     slope, tstat = declining_price_slope(df)
     fig_path = plot_price_path(df, outdir="figures")
     rev_path = plot_revenue_path(df, outdir="figures")
+    eff_path = plot_efficiency_and_util(df, outdir="figures")
     out_df = pd.DataFrame([
         dict(metric="declining_price_slope", value=slope),
         dict(metric="declining_price_tstat", value=tstat),
@@ -59,6 +70,16 @@ def main(argv: List[str] | None = None) -> None:
             to_table(ots, "results/otree_summary.csv")
 
     # Stage heatmaps and equilibrium alias for report
+    if args.compare and Path(args.compare).exists():
+        compare_df = read_table(args.compare)
+        plot_price_comparison(
+            df,
+            compare_df,
+            baseline_label=args.baseline_label,
+            comparison_label=args.compare_label,
+            outdir="figures",
+        )
+
     if args.stage_grid and Path(args.stage_grid).exists():
         sg = read_table(args.stage_grid)
         hm = plot_stage_heatmap(sg, measure="eq_count", outdir="figures")
