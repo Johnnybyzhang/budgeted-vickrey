@@ -109,12 +109,6 @@ Because budgets couple periods and the horizon is finite, **Subgame Perfect Nash
 
    *Overlay of price dynamics for continuous draws (baseline) vs. a five-point discrete valuation grid, highlighting robustness of declining prices.*
 
-6. **Stage Heatmap (diagonal grid)** — `figures/equilibrium_heatmap.png`
-
-   ![Stage-game equilibrium heatmap](figures/equilibrium_heatmap.png)
-
-   *Diagonal cases ($v_1=v_2$, $B_1=B_2$); color encodes the count of Nash equilibria in the discretized stage game when the stage grid CSV is supplied. (If the optional grid is absent the placeholder text in this figure highlights that dependency.)*
-
 ---
 
 ### Data/code availability
