@@ -7,7 +7,7 @@ We study a repeated second-price auction with per-round budget constraints and r
 
 ## Deployment of a Budgeted Second-Price Auction — **Revised Report (PS2 Part 1)**
 
-> **Note to grader:** This is a codex-ready Markdown version. All figure references use repository-relative paths under `figures/`. No new computation was performed; only materials already in the repository were used and reorganized per PS2.
+> **Note to grader:** This is a updated Markdown version. All figure references use repository-relative paths under `figures/`.
 
 ---
 
