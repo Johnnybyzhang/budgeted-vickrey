@@ -275,49 +275,10 @@ We track $\Delta= P_{\text{high}}-P_{\text{low}}=2P_{\text{high}}-1$ for pairs (
 
 ### 4.1 Reproducible Python (matplotlib only)
 
-Save as `scripts/plot_adjacent_advantage.py`:
+Saved as [plot_adjacent_advantage.py](scripts/plot_adjacent_advantage.py):
 
-```
-import math, os
-import numpy as np
-import matplotlib.pyplot as plt
 
-os.makedirs("figures", exist_ok=True)
-
-B = range(1, 10)  # pairs (b+1 vs b)
-
-# Linear rule: P_high = (b+1)/(2b+1) -> Δ = 1/(2b+1)
-def delta_linear(b:int)->float:
-    return 1.0/(2*b+1)
-
-# Log rule
-def p_high_log(b:int, kappa:float)->float:
-    a, c = 1+kappa*(b+1), 1+kappa*b
-    if a<=0 or c<=0: return float('nan')
-    la, lc = math.log(a), math.log(c)
-    return la/(la+lc)
-
-def delta_log(b:int, kappa:float)->float:
-    ph = p_high_log(b, kappa)
-    return 2*ph - 1
-
-kappas = [1.0, -0.09, -0.099]
-labels = ["Log kappa=1.0", "Log kappa=-0.09", "Log kappa=-0.099"]
-
-plt.figure(figsize=(7,4.5))
-plt.plot(B, [delta_linear(b) for b in B], marker='s', label='Linear')
-for k, lbl in zip(kappas, labels):
-    plt.plot(B, [delta_log(b,k) for b in B], marker='o', label=lbl)
-plt.title("Advantage of Higher Bid (Δ) for Adjacent Bids: Linear vs Log")
-plt.xlabel("Lower bid b (pair is b+1 vs b)")
-plt.ylabel("Δ = P_high − P_low")
-plt.ylim(0,1.05); plt.xlim(1,9)
-plt.grid(True, alpha=0.3); plt.legend(); plt.tight_layout()
-plt.savefig("figures/linear_vs_log_adjacent_delta.png", dpi=200)
-print("Wrote figures/linear_vs_log_adjacent_delta.png")
-```
-
-**Output** (regenerate locally): `figures/linear_vs_log_adjacent_delta.png`.
+![Figure](figures/linear_vs_log_adjacent_delta.png).
 
 ---
 
@@ -327,99 +288,15 @@ Compute $\Pi^{\log}(x,y;\kappa)$ for $\kappa\in\{-0.099,-0.05,0.05,0.099\}$. Als
 
 ### 5.1 Reproducible Python
 
-Save as `scripts/make_expected_profit_matrices.py`:
+Saved as [make_expected_profit_matrices.py](scripts/make_expected_profit_matrices.py):
 
-```
-import math, os
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 
-os.makedirs("data", exist_ok=True)
-os.makedirs("figures", exist_ok=True)
-
-BIDS = list(range(0, 11))  # 0..10
-KAPPAS = [-0.099, -0.05, 0.05, 0.099]
-
-def p_win(x:int, y:int, kappa:float) -> float:
-    if x==0 and y==0:
-        return 0.5
-    ax, ay = 1 + kappa*x, 1 + kappa*y
-    if ax<=0 or ay<=0:
-        return float('nan')
-    lx, ly = math.log(ax), math.log(ay)
-    return lx/(lx+ly)
-
-def expected_profit_matrix(kappa: float) -> pd.DataFrame:
-    vals = []
-    for x in BIDS:
-        row = []
-        for y in BIDS:
-            p = p_win(x,y,kappa)
-            row.append(8.0*p - x)
-        vals.append(row)
-    return pd.DataFrame(vals, index=[f"my_{x}" for x in BIDS], columns=[f"opp_{y}" for y in BIDS])
-
-# Build & save all matrices
-writer = pd.ExcelWriter("data/expected_profit_matrices.xlsx")
-for k in KAPPAS:
-    df = expected_profit_matrix(k)
-    sheet = f"kappa_{str(k).replace('-','m').replace('.','p')}"
-    df.to_excel(writer, sheet_name=sheet)
-    df.to_csv(f"data/expected_profit_{sheet}.csv")
-    # Heatmap
-    plt.figure(figsize=(7,5))
-    plt.imshow(df.values, origin='lower', extent=[0,10,0,10], aspect='equal')
-    plt.colorbar(label="Expected profit (row player)")
-    plt.title(f"Expected Profit Heatmap (κ={k})")
-    plt.xlabel("Opponent bid y"); plt.ylabel("Your bid x")
-    plt.tight_layout()
-    plt.savefig(f"figures/expected_profit_heatmap_{sheet}.png", dpi=200)
-    plt.close()
-writer.close()
-print("Wrote data/*.csv, data/expected_profit_matrices.xlsx, and figures/*.png")
-```
-
-**Outputs** (regenerate locally):
+**Outputs**:
 
 * Excel workbook: `data/expected_profit_matrices.xlsx` (4 sheets)
 * CSVs: `data/expected_profit_kappa_m0p099.csv`, `..._m0p05.csv`, `..._0p05.csv`, `..._0p099.csv`
 * Heatmaps: `figures/expected_profit_heatmap_kappa_m0p099.png`, `..._m0p05.png`, `..._0p05.png`, `..._0p099.png`
 
----
-
-## 6) Repo layout & commit message (suggested)
-
-```
-repo/
-  README.md                      # include this spec
-  scripts/
-    plot_adjacent_advantage.py
-    make_expected_profit_matrices.py
-  data/                          # generated tables (git-LFS optional)
-  figures/                       # generated PNGs
-```
-
-**Commit message**:
-
-```
-feat(game-behavior): add logarithmic win-probability rule, plots, and 11x11 EP matrices
-
-- Spec: P^log(x|y; kappa) = ln(1+kappa x)/sum with domain kappa>-0.1
-- Scripts: adjacent advantage plot; expected-profit matrices (four kappas)
-- Artifacts: figures/*.png, data/*.csv, data/expected_profit_matrices.xlsx
-```
-
----
-
-## 7) Quick checklist
-
-* [ ] Copy this Markdown into `README.md`.
-* [ ] Add `scripts/` files verbatim.
-* [ ] Run the two scripts to regenerate `figures/` and `data/`.
-* [ ] Commit & push.
-
----
 
 ## 8) Attribution
 
