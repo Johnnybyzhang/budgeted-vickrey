@@ -285,6 +285,7 @@ Saved as [plot_adjacent_advantage.py](scripts/plot_adjacent_advantage.py):
 ## 5) 11×11 expected-profit matrices (bids 0..10)
 
 Compute $\Pi^{\log}(x,y;\kappa)$ for $\kappa\in\{-0.099,-0.05,0.05,0.099\}$.
+
 ![-0.099](figures/m0p099.png)
 ![-0.05](figures/m0p05.png)
 ![0.05](figures/0p05.png)
