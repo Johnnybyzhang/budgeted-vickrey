@@ -239,7 +239,7 @@ Let $g_\kappa(b)=\ln(1+\kappa b)$. Define:
 $$
 P^{\log}(x\mid y;\kappa)=
 \begin{cases}
-\tfrac12, & x=y=0,\\[4pt]
+\tfrac12, & x=y=0,\
 \dfrac{g_\kappa(x)}{g_\kappa(x)+g_\kappa(y)}, & \text{otherwise}.
 \end{cases}
 $$
