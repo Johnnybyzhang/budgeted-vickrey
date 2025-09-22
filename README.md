@@ -300,4 +300,4 @@ Saved as [make_expected_profit_matrices.py](scripts/make_expected_profit_matrice
 
 ## 8) Attribution
 
-* Original course/problem-set context referenced for framing (Computational Microeconomics; auctions & mechanism design).
+* Original course/problem-set Games and Behaviour Problem set #477 (Computational Microeconomics; auctions & mechanism design).
